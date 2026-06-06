@@ -312,3 +312,166 @@
 后续修改记录：
 
 - 暂无。
+
+## 2026-06-06 后续修改记录：接入用户注册登录
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+- 当前负责创建用户表，并提供用户注册、用户名查重、登录校验方法。
+
+本次修改：
+
+- 新增该文件。
+- 创建数据库 `account_book.db`。
+- 创建用户表 `users`。
+- 提供 `registerUser()`、`isUsernameExists()`、`validateLogin()` 方法。
+
+### `app/src/main/java/com/example/accountbook/util/SessionManager.java`
+
+文件作用：
+
+- 登录状态管理类。
+- 使用 SharedPreferences 保存当前登录用户信息。
+
+本次修改：
+
+- 新增该文件。
+- 提供保存登录状态、判断是否已登录、读取用户名、退出登录等方法。
+
+### `app/src/main/java/com/example/accountbook/LoginActivity.java`
+
+文件作用：
+
+- 登录页面控制逻辑。
+
+本次修改：
+
+- 接入 `DatabaseHelper` 和 `SessionManager`。
+- 登录时使用 SQLite 校验用户名和密码。
+- 登录成功后保存登录状态。
+- 如果用户已登录，打开登录页时直接进入首页。
+
+### `app/src/main/java/com/example/accountbook/RegisterActivity.java`
+
+文件作用：
+
+- 注册页面控制逻辑。
+
+本次修改：
+
+- 接入 `DatabaseHelper`。
+- 注册时检查用户名是否已存在。
+- 注册成功后将用户写入 SQLite 用户表。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- 接入 `SessionManager`。
+- 将右上角“我”按钮临时作为退出登录入口，点击后清除登录状态并返回登录页。
+
+## 2026-06-06 后续修改记录：账单新增和列表
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 数据库版本从 1 升级到 2。
+- 新增账单表 `records`。
+- 新增 `addRecord()`，用于保存收入/支出账单。
+- 新增 `getRecordsByUser()`，用于读取当前用户账单列表。
+- 新增 `getMonthlyTotal()`，用于统计当前用户指定月份的收入或支出总额。
+
+### `app/src/main/java/com/example/accountbook/util/SessionManager.java`
+
+文件作用：
+
+- 登录状态管理类。
+
+本次修改：
+
+- 新增 `getUserId()`，供账单保存和查询时绑定当前登录用户。
+
+### `app/src/main/java/com/example/accountbook/RecordEditActivity.java`
+
+文件作用：
+
+- 账单新增页面控制逻辑。
+
+本次修改：
+
+- 新增该文件。
+- 支持录入收入或支出。
+- 支持金额、分类、日期、备注填写。
+- 保存时写入 SQLite 的 `records` 表。
+- 校验金额不能为空、金额必须大于 0、日期格式必须为 `yyyy-MM-dd`。
+
+### `app/src/main/java/com/example/accountbook/RecordListActivity.java`
+
+文件作用：
+
+- 账单列表页面控制逻辑。
+
+本次修改：
+
+- 新增该文件。
+- 从 SQLite 读取当前登录用户的账单。
+- 按日期和 id 倒序显示账单。
+- 无账单时显示空状态提示。
+- 提供新增账单入口。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- “记一笔支出”“记一笔收入”按钮跳转到 `RecordEditActivity`。
+- “账单列表”“查看全部”按钮跳转到 `RecordListActivity`。
+- 首页本月收入、本月支出、本月结余改为从 SQLite 动态统计。
+
+### `app/src/main/AndroidManifest.xml`
+
+文件作用：
+
+- Android 应用清单文件。
+
+本次修改：
+
+- 注册 `RecordEditActivity`。
+- 注册 `RecordListActivity`。
+
+### `app/src/main/res/layout/activity_record_edit.xml`
+
+文件作用：
+
+- 账单新增页面布局文件。
+
+本次修改：
+
+- 新增该文件。
+- 提供账单类型、金额、分类、日期、备注和保存按钮。
+
+### `app/src/main/res/layout/activity_record_list.xml`
+
+文件作用：
+
+- 账单列表页面布局文件。
+
+本次修改：
+
+- 新增该文件。
+- 提供返回按钮、新增按钮、空状态提示和账单容器。

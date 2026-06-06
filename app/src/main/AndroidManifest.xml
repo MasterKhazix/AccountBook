@@ -12,6 +12,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AccountBook">
         <activity android:name=".RegisterActivity" />
+        <activity android:name=".RecordListActivity" />
+        <activity android:name=".RecordEditActivity" />
         <activity android:name=".MainActivity" />
         <activity
             android:name=".LoginActivity"

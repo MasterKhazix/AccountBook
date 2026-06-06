@@ -5,6 +5,8 @@ import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.accountbook.db.DatabaseHelper;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -16,6 +18,7 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText usernameEditText;
     private EditText passwordEditText;
     private EditText confirmPasswordEditText;
+    private DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +34,7 @@ public class RegisterActivity extends AppCompatActivity {
         usernameEditText = findViewById(R.id.et_register_username);
         passwordEditText = findViewById(R.id.et_register_password);
         confirmPasswordEditText = findViewById(R.id.et_confirm_password);
+        databaseHelper = new DatabaseHelper(this);
 
         findViewById(R.id.btn_back_login).setOnClickListener(v -> finish());
         findViewById(R.id.btn_register).setOnClickListener(v -> handleRegister());
@@ -56,7 +60,18 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        Toast.makeText(this, "注册成功，后续接入数据库保存", Toast.LENGTH_SHORT).show();
+        if (databaseHelper.isUsernameExists(username)) {
+            Toast.makeText(this, "用户名已存在", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        long result = databaseHelper.registerUser(username, password);
+        if (result == -1) {
+            Toast.makeText(this, "注册失败，请重试", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "注册成功，请登录", Toast.LENGTH_SHORT).show();
         finish();
     }
 }
