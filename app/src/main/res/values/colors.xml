@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="app_background">#F6F7F2</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="primary">#2F6B4F</color>
+    <color name="primary_dark">#24513D</color>
+    <color name="accent">#D98E37</color>
+    <color name="income">#287D5A</color>
+    <color name="expense">#B54C3C</color>
+    <color name="text_primary">#1E2621</color>
+    <color name="text_secondary">#66706A</color>
+    <color name="divider">#E1E5DD</color>
+</resources>
