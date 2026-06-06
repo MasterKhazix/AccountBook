@@ -2,6 +2,7 @@ package com.example.accountbook;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.database.Cursor;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -26,8 +27,10 @@ import androidx.core.view.WindowInsetsCompat;
 public class RecordEditActivity extends AppCompatActivity {
 
     public static final String EXTRA_TYPE = "type";
+    public static final String EXTRA_RECORD_ID = "record_id";
     public static final String TYPE_EXPENSE = "expense";
     public static final String TYPE_INCOME = "income";
+    private static final int NO_RECORD_ID = -1;
 
     private RadioButton expenseRadioButton;
     private RadioButton incomeRadioButton;
@@ -37,6 +40,7 @@ public class RecordEditActivity extends AppCompatActivity {
     private Spinner categorySpinner;
     private DatabaseHelper databaseHelper;
     private SessionManager sessionManager;
+    private int editingRecordId = NO_RECORD_ID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +73,7 @@ public class RecordEditActivity extends AppCompatActivity {
     }
 
     private void initForm() {
+        editingRecordId = getIntent().getIntExtra(EXTRA_RECORD_ID, NO_RECORD_ID);
         String type = getIntent().getStringExtra(EXTRA_TYPE);
         if (TYPE_INCOME.equals(type)) {
             incomeRadioButton.setChecked(true);
@@ -78,6 +83,7 @@ public class RecordEditActivity extends AppCompatActivity {
 
         dateEditText.setText(new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).format(new Date()));
         refreshCategories();
+        loadRecordIfEditing();
     }
 
     private void refreshCategories() {
@@ -89,7 +95,52 @@ public class RecordEditActivity extends AppCompatActivity {
         categorySpinner.setAdapter(adapter);
 
         TextView titleTextView = findViewById(R.id.tv_record_title);
-        titleTextView.setText(incomeRadioButton.isChecked() ? "记一笔收入" : "记一笔支出");
+        if (editingRecordId == NO_RECORD_ID) {
+            titleTextView.setText(incomeRadioButton.isChecked() ? "记一笔收入" : "记一笔支出");
+        } else {
+            titleTextView.setText("编辑账单");
+        }
+    }
+
+    private void loadRecordIfEditing() {
+        if (editingRecordId == NO_RECORD_ID) {
+            return;
+        }
+
+        int userId = sessionManager.getUserId();
+        try (Cursor cursor = databaseHelper.getRecordById(editingRecordId, userId)) {
+            if (!cursor.moveToFirst()) {
+                Toast.makeText(this, "账单不存在", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+
+            String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
+            String category = cursor.getString(cursor.getColumnIndexOrThrow("category"));
+            double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount"));
+            String date = cursor.getString(cursor.getColumnIndexOrThrow("record_date"));
+            String note = cursor.getString(cursor.getColumnIndexOrThrow("note"));
+
+            if (TYPE_INCOME.equals(type)) {
+                incomeRadioButton.setChecked(true);
+            } else {
+                expenseRadioButton.setChecked(true);
+            }
+            refreshCategories();
+            selectCategory(category);
+            amountEditText.setText(String.format(Locale.CHINA, "%.2f", amount));
+            dateEditText.setText(date);
+            noteEditText.setText(note == null ? "" : note);
+        }
+    }
+
+    private void selectCategory(String category) {
+        for (int i = 0; i < categorySpinner.getCount(); i++) {
+            if (String.valueOf(categorySpinner.getItemAtPosition(i)).equals(category)) {
+                categorySpinner.setSelection(i);
+                return;
+            }
+        }
     }
 
     private void saveRecord() {
@@ -128,8 +179,14 @@ public class RecordEditActivity extends AppCompatActivity {
             return;
         }
 
-        long result = databaseHelper.addRecord(userId, type, category, amount, date, note);
-        if (result == -1) {
+        boolean success;
+        if (editingRecordId == NO_RECORD_ID) {
+            success = databaseHelper.addRecord(userId, type, category, amount, date, note) != -1;
+        } else {
+            success = databaseHelper.updateRecord(editingRecordId, userId, type, category, amount, date, note) > 0;
+        }
+
+        if (!success) {
             Toast.makeText(this, "保存失败，请重试", Toast.LENGTH_SHORT).show();
             return;
         }

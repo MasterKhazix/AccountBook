@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_records).setOnClickListener(v -> openRecordList());
         findViewById(R.id.btn_statistics).setOnClickListener(v -> showComingSoon("统计分析"));
         findViewById(R.id.btn_categories).setOnClickListener(v -> showComingSoon("分类管理"));
-        findViewById(R.id.btn_search).setOnClickListener(v -> showComingSoon("筛选查询"));
+        findViewById(R.id.btn_search).setOnClickListener(v -> openRecordList());
         findViewById(R.id.btn_view_all).setOnClickListener(v -> openRecordList());
     }
 

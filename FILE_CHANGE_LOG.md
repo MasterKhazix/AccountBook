@@ -475,3 +475,126 @@
 
 - 新增该文件。
 - 提供返回按钮、新增按钮、空状态提示和账单容器。
+
+## 2026-06-06 后续修改记录：账单批量管理模式
+
+### `app/src/main/res/layout/activity_record_list.xml`
+
+文件作用：
+
+- 账单列表页面布局文件。
+
+本次修改：
+
+- 新增“管理”按钮。
+- 新增“删除所选”按钮，默认隐藏，进入管理模式后显示。
+- 保留“新增”按钮，普通模式下继续用于新增账单。
+
+### `app/src/main/java/com/example/accountbook/RecordListActivity.java`
+
+文件作用：
+
+- 账单列表页面控制逻辑。
+
+本次修改：
+
+- 移除长按删除交互。
+- 新增管理模式：点击“管理”后列表项右侧显示选择圆点。
+- 管理模式下点击账单切换选中/未选中。
+- 普通模式下点击账单仍进入编辑页。
+- 支持对选中的多条账单进行批量删除。
+- 删除前保留确认弹窗，避免误删。
+
+### `app/src/main/res/drawable/bg_select_circle_off.xml`
+
+文件作用：
+
+- 未选中状态的圆形选择标记背景。
+
+本次修改：
+
+- 新增该文件。
+- 使用白底和浅色描边表示未选择。
+
+### `app/src/main/res/drawable/bg_select_circle_on.xml`
+
+文件作用：
+
+- 已选中状态的圆形选择标记背景。
+
+本次修改：
+
+- 新增该文件。
+- 使用主色实心圆表示已选择。
+
+## 2026-06-06 后续修改记录：修复账单管理编译错误
+
+### `app/src/main/java/com/example/accountbook/RecordEditActivity.java`
+
+文件作用：
+
+- 账单新增/编辑页面控制逻辑。
+
+本次修改：
+
+- 补回 `EXTRA_RECORD_ID` 常量，供账单列表跳转编辑页时传递账单 id。
+- 补回编辑模式逻辑：根据账单 id 加载原数据，保存时执行更新。
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 补回 `getRecordById()`，用于编辑页读取单条账单。
+- 补回 `updateRecord()`，用于保存编辑结果。
+- 补回 `deleteRecord()`，用于批量删除时删除指定账单。
+
+## 2026-06-06 后续修改记录：账单筛选查询
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 新增 `searchRecords()`，支持按账单类型、分类和备注关键字组合查询。
+
+### `app/src/main/res/layout/activity_record_list.xml`
+
+文件作用：
+
+- 账单列表页面布局文件。
+
+本次修改：
+
+- 新增筛选查询面板。
+- 增加类型下拉框、分类下拉框、备注关键字输入框。
+- 增加“查询”和“重置”按钮。
+
+### `app/src/main/java/com/example/accountbook/RecordListActivity.java`
+
+文件作用：
+
+- 账单列表页面控制逻辑。
+
+本次修改：
+
+- 初始化筛选下拉框。
+- 查询时读取类型、分类和备注关键字并刷新列表。
+- 重置时清空筛选条件并恢复全部账单。
+- 账单列表统一使用 `searchRecords()` 加载数据。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- 首页“筛选查询”入口改为打开账单列表页，使用列表页内置筛选面板完成查询。

@@ -126,6 +126,73 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_RECORD_DATE + " DESC, " + COL_ID + " DESC");
     }
 
+    public Cursor searchRecords(int userId, String type, String category, String keyword) {
+        SQLiteDatabase db = getReadableDatabase();
+        StringBuilder selection = new StringBuilder(COL_USER_ID + "=?");
+        java.util.ArrayList<String> args = new java.util.ArrayList<>();
+        args.add(String.valueOf(userId));
+
+        if (type != null && !type.isEmpty()) {
+            selection.append(" AND ").append(COL_TYPE).append("=?");
+            args.add(type);
+        }
+
+        if (category != null && !category.isEmpty()) {
+            selection.append(" AND ").append(COL_CATEGORY).append("=?");
+            args.add(category);
+        }
+
+        if (keyword != null && !keyword.isEmpty()) {
+            selection.append(" AND ").append(COL_NOTE).append(" LIKE ?");
+            args.add("%" + keyword + "%");
+        }
+
+        return db.query(
+                TABLE_RECORDS,
+                new String[]{COL_ID, COL_TYPE, COL_CATEGORY, COL_AMOUNT, COL_RECORD_DATE, COL_NOTE},
+                selection.toString(),
+                args.toArray(new String[0]),
+                null,
+                null,
+                COL_RECORD_DATE + " DESC, " + COL_ID + " DESC");
+    }
+
+    public Cursor getRecordById(int recordId, int userId) {
+        SQLiteDatabase db = getReadableDatabase();
+        return db.query(
+                TABLE_RECORDS,
+                new String[]{COL_ID, COL_TYPE, COL_CATEGORY, COL_AMOUNT, COL_RECORD_DATE, COL_NOTE},
+                COL_ID + "=? AND " + COL_USER_ID + "=?",
+                new String[]{String.valueOf(recordId), String.valueOf(userId)},
+                null,
+                null,
+                null);
+    }
+
+    public int updateRecord(int recordId, int userId, String type, String category, double amount,
+                            String recordDate, String note) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_TYPE, type);
+        values.put(COL_CATEGORY, category);
+        values.put(COL_AMOUNT, amount);
+        values.put(COL_RECORD_DATE, recordDate);
+        values.put(COL_NOTE, note);
+        return db.update(
+                TABLE_RECORDS,
+                values,
+                COL_ID + "=? AND " + COL_USER_ID + "=?",
+                new String[]{String.valueOf(recordId), String.valueOf(userId)});
+    }
+
+    public int deleteRecord(int recordId, int userId) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(
+                TABLE_RECORDS,
+                COL_ID + "=? AND " + COL_USER_ID + "=?",
+                new String[]{String.valueOf(recordId), String.valueOf(userId)});
+    }
+
     public double getMonthlyTotal(int userId, String type, String monthPrefix) {
         SQLiteDatabase db = getReadableDatabase();
         try (Cursor cursor = db.rawQuery(
