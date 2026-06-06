@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AccountBook">
         <activity android:name=".RegisterActivity" />
+        <activity android:name=".StatisticsActivity" />
+        <activity android:name=".RecordSearchActivity" />
+        <activity android:name=".CategoryActivity" />
         <activity android:name=".RecordListActivity" />
         <activity android:name=".RecordEditActivity" />
         <activity android:name=".MainActivity" />

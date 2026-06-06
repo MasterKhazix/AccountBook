@@ -15,6 +15,7 @@ import com.example.accountbook.db.DatabaseHelper;
 import com.example.accountbook.util.SessionManager;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -87,9 +88,13 @@ public class RecordEditActivity extends AppCompatActivity {
     }
 
     private void refreshCategories() {
-        String[] categories = incomeRadioButton.isChecked()
-                ? new String[]{"工资", "奖金", "兼职", "其他收入"}
-                : new String[]{"餐饮", "交通", "购物", "生活缴费", "其他支出"};
+        ArrayList<String> categories = new ArrayList<>();
+        try (Cursor cursor = databaseHelper.getCategoriesByType(sessionManager.getUserId(), getSelectedType())) {
+            while (cursor.moveToNext()) {
+                categories.add(cursor.getString(cursor.getColumnIndexOrThrow("name")));
+            }
+        }
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categorySpinner.setAdapter(adapter);
@@ -100,6 +105,10 @@ public class RecordEditActivity extends AppCompatActivity {
         } else {
             titleTextView.setText("编辑账单");
         }
+    }
+
+    private String getSelectedType() {
+        return incomeRadioButton.isChecked() ? TYPE_INCOME : TYPE_EXPENSE;
     }
 
     private void loadRecordIfEditing() {
@@ -148,7 +157,7 @@ public class RecordEditActivity extends AppCompatActivity {
         String amountText = amountEditText.getText().toString().trim();
         String date = dateEditText.getText().toString().trim();
         String note = noteEditText.getText().toString().trim();
-        String type = incomeRadioButton.isChecked() ? TYPE_INCOME : TYPE_EXPENSE;
+        String type = getSelectedType();
         String category = String.valueOf(categorySpinner.getSelectedItem());
 
         if (userId == -1) {

@@ -598,3 +598,220 @@
 本次修改：
 
 - 首页“筛选查询”入口改为打开账单列表页，使用列表页内置筛选面板完成查询。
+
+## 2026-06-06 后续修改记录：统计分析模块
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 新增 `getMonthlyCategoryTotals()`，用于统计指定月份内某类账单的分类汇总。
+
+### `app/src/main/java/com/example/accountbook/StatisticsActivity.java`
+
+文件作用：
+
+- 统计分析页面控制逻辑。
+
+本次修改：
+
+- 新增该文件。
+- 展示本月收入、本月支出和本月结余。
+- 展示本月支出分类排行。
+- 支出分类统计按照金额从高到低排序。
+
+### `app/src/main/res/layout/activity_statistics.xml`
+
+文件作用：
+
+- 统计分析页面布局文件。
+
+本次修改：
+
+- 新增该文件。
+- 提供返回入口、月度收支总览卡片、支出分类排行列表和空状态提示。
+
+### `app/src/main/AndroidManifest.xml`
+
+文件作用：
+
+- Android 应用清单文件。
+
+本次修改：
+
+- 注册 `StatisticsActivity`。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- 首页“统计分析”入口改为打开 `StatisticsActivity`。
+
+## 2026-06-06 后续修改记录：首页颜色修正和查询页拆分
+
+### `app/src/main/res/layout/activity_main.xml`
+
+文件作用：
+
+- 首页界面布局文件。
+
+本次修改：
+
+- 按反馈调整本月总览区域颜色：收入显示为红色，支出显示为绿色。
+- 同步调整“收入”“支出”标签文字颜色。
+
+### `app/src/main/res/layout/activity_record_list.xml`
+
+文件作用：
+
+- 账单列表页面布局文件。
+
+本次修改：
+
+- 移除原先嵌入在账单列表页里的筛选查询面板，降低页面拥挤感。
+- 顶部新增“查询”按钮，点击后跳转到独立筛选查询页。
+
+### `app/src/main/java/com/example/accountbook/RecordListActivity.java`
+
+文件作用：
+
+- 账单列表页面控制逻辑。
+
+本次修改：
+
+- 移除列表页内的筛选控件绑定和筛选加载逻辑。
+- 账单列表恢复为只展示全部账单。
+- 新增“查询”按钮跳转到 `RecordSearchActivity`。
+
+### `app/src/main/java/com/example/accountbook/RecordSearchActivity.java`
+
+文件作用：
+
+- 独立筛选查询页面控制逻辑。
+
+本次修改：
+
+- 新增该文件。
+- 支持按账单类型、分类和备注关键字查询。
+- 查询结果支持点击进入账单编辑页。
+
+### `app/src/main/res/layout/activity_record_search.xml`
+
+文件作用：
+
+- 独立筛选查询页面布局文件。
+
+本次修改：
+
+- 新增该文件。
+- 提供类型筛选、分类筛选、备注关键字输入、查询/重置按钮和查询结果列表。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- 首页“筛选查询”入口改为打开 `RecordSearchActivity`。
+
+### `app/src/main/AndroidManifest.xml`
+
+文件作用：
+
+- Android 应用清单文件。
+
+本次修改：
+
+- 注册 `RecordSearchActivity`。
+
+## 2026-06-06 后续修改记录：分类管理模块
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 数据库版本升级到 3。
+- 新增分类表 `categories`。
+- 新增默认分类初始化逻辑。
+- 新增分类查询、添加自定义分类、删除自定义分类方法。
+- 用户注册或登录后会自动准备默认收入/支出分类。
+
+### `app/src/main/java/com/example/accountbook/CategoryActivity.java`
+
+文件作用：
+
+- 分类管理页面控制逻辑。
+
+本次修改：
+
+- 新增该文件。
+- 支持切换收入分类和支出分类。
+- 支持添加自定义分类。
+- 支持删除自定义分类。
+- 默认分类只显示“默认”，不允许删除。
+
+### `app/src/main/res/layout/activity_category.xml`
+
+文件作用：
+
+- 分类管理页面布局文件。
+
+本次修改：
+
+- 新增该文件。
+- 提供分类类型切换、分类名称输入、添加按钮和分类列表容器。
+
+### `app/src/main/java/com/example/accountbook/RecordEditActivity.java`
+
+文件作用：
+
+- 账单新增/编辑页面控制逻辑。
+
+本次修改：
+
+- 账单分类下拉框改为从 SQLite 分类表读取。
+- 支出/收入类型切换时同步刷新对应分类。
+
+### `app/src/main/java/com/example/accountbook/RecordSearchActivity.java`
+
+文件作用：
+
+- 独立筛选查询页面控制逻辑。
+
+本次修改：
+
+- 查询页分类下拉框改为从 SQLite 分类表读取。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- 首页“分类管理”入口改为打开 `CategoryActivity`。
+
+### `app/src/main/AndroidManifest.xml`
+
+文件作用：
+
+- Android 应用清单文件。
+
+本次修改：
+
+- 注册 `CategoryActivity`。

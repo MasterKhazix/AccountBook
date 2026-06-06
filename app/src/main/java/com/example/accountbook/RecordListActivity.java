@@ -6,10 +6,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,9 +32,6 @@ public class RecordListActivity extends AppCompatActivity {
     private TextView emptyTextView;
     private TextView manageButton;
     private TextView deleteSelectedButton;
-    private Spinner filterTypeSpinner;
-    private Spinner filterCategorySpinner;
-    private EditText filterKeywordEditText;
     private DatabaseHelper databaseHelper;
     private SessionManager sessionManager;
     private boolean manageMode = false;
@@ -59,19 +53,14 @@ public class RecordListActivity extends AppCompatActivity {
         emptyTextView = findViewById(R.id.tv_empty);
         manageButton = findViewById(R.id.btn_manage);
         deleteSelectedButton = findViewById(R.id.btn_delete_selected);
-        filterTypeSpinner = findViewById(R.id.sp_filter_type);
-        filterCategorySpinner = findViewById(R.id.sp_filter_category);
-        filterKeywordEditText = findViewById(R.id.et_filter_keyword);
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         findViewById(R.id.btn_add_record).setOnClickListener(v ->
                 startActivity(new Intent(this, RecordEditActivity.class)));
+        findViewById(R.id.btn_search_record).setOnClickListener(v ->
+                startActivity(new Intent(this, RecordSearchActivity.class)));
         manageButton.setOnClickListener(v -> toggleManageMode());
         deleteSelectedButton.setOnClickListener(v -> confirmBatchDelete());
-        findViewById(R.id.btn_apply_filter).setOnClickListener(v -> loadRecords());
-        findViewById(R.id.btn_reset_filter).setOnClickListener(v -> resetFilters());
-
-        initFilters();
     }
 
     @Override
@@ -88,11 +77,7 @@ public class RecordListActivity extends AppCompatActivity {
             return;
         }
 
-        try (Cursor cursor = databaseHelper.searchRecords(
-                userId,
-                getSelectedType(),
-                getSelectedCategory(),
-                filterKeywordEditText.getText().toString().trim())) {
+        try (Cursor cursor = databaseHelper.getRecordsByUser(userId)) {
             boolean hasRecords = cursor.getCount() > 0;
             emptyTextView.setVisibility(hasRecords ? View.GONE : View.VISIBLE);
             manageButton.setVisibility(hasRecords ? View.VISIBLE : View.GONE);
@@ -109,46 +94,6 @@ public class RecordListActivity extends AppCompatActivity {
                 String note = cursor.getString(cursor.getColumnIndexOrThrow("note"));
                 recordContainer.addView(createRecordRow(recordId, type, category, amount, date, note));
             }
-        }
-    }
-
-    private void initFilters() {
-        setSpinnerItems(filterTypeSpinner, new String[]{"全部类型", "支出", "收入"});
-        setSpinnerItems(filterCategorySpinner, new String[]{
-                "全部分类", "餐饮", "交通", "购物", "生活缴费", "其他支出", "工资", "奖金", "兼职", "其他收入"
-        });
-    }
-
-    private void setSpinnerItems(Spinner spinner, String[] items) {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-    }
-
-    private String getSelectedType() {
-        String value = String.valueOf(filterTypeSpinner.getSelectedItem());
-        if ("支出".equals(value)) {
-            return RecordEditActivity.TYPE_EXPENSE;
-        }
-        if ("收入".equals(value)) {
-            return RecordEditActivity.TYPE_INCOME;
-        }
-        return "";
-    }
-
-    private String getSelectedCategory() {
-        String value = String.valueOf(filterCategorySpinner.getSelectedItem());
-        return "全部分类".equals(value) ? "" : value;
-    }
-
-    private void resetFilters() {
-        filterTypeSpinner.setSelection(0);
-        filterCategorySpinner.setSelection(0);
-        filterKeywordEditText.setText("");
-        if (manageMode) {
-            exitManageMode();
-        } else {
-            loadRecords();
         }
     }
 

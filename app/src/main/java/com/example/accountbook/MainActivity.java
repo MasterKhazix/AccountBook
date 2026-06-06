@@ -53,9 +53,9 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_add_expense).setOnClickListener(v -> openRecordEdit(RecordEditActivity.TYPE_EXPENSE));
         findViewById(R.id.btn_add_income).setOnClickListener(v -> openRecordEdit(RecordEditActivity.TYPE_INCOME));
         findViewById(R.id.btn_records).setOnClickListener(v -> openRecordList());
-        findViewById(R.id.btn_statistics).setOnClickListener(v -> showComingSoon("统计分析"));
-        findViewById(R.id.btn_categories).setOnClickListener(v -> showComingSoon("分类管理"));
-        findViewById(R.id.btn_search).setOnClickListener(v -> openRecordList());
+        findViewById(R.id.btn_statistics).setOnClickListener(v -> openStatistics());
+        findViewById(R.id.btn_categories).setOnClickListener(v -> openCategories());
+        findViewById(R.id.btn_search).setOnClickListener(v -> openRecordSearch());
         findViewById(R.id.btn_view_all).setOnClickListener(v -> openRecordList());
     }
 
@@ -100,5 +100,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void openRecordList() {
         startActivity(new android.content.Intent(this, RecordListActivity.class));
+    }
+
+    private void openStatistics() {
+        startActivity(new android.content.Intent(this, StatisticsActivity.class));
+    }
+
+    private void openRecordSearch() {
+        startActivity(new android.content.Intent(this, RecordSearchActivity.class));
+    }
+
+    private void openCategories() {
+        startActivity(new android.content.Intent(this, CategoryActivity.class));
     }
 }

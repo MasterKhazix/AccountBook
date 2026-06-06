@@ -101,7 +101,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="收入"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/expense"
                         android:textSize="13sp" />
 
                     <TextView
@@ -110,7 +110,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="¥ 5,800.00"
-                        android:textColor="@color/income"
+                        android:textColor="@color/expense"
                         android:textSize="18sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -125,7 +125,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="支出"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/income"
                         android:textSize="13sp" />
 
                     <TextView
@@ -134,7 +134,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="¥ 3,450.00"
-                        android:textColor="@color/expense"
+                        android:textColor="@color/income"
                         android:textSize="18sp"
                         android:textStyle="bold" />
                 </LinearLayout>

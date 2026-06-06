@@ -9,10 +9,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "account_book.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     private static final String TABLE_USERS = "users";
     private static final String TABLE_RECORDS = "records";
+    private static final String TABLE_CATEGORIES = "categories";
     private static final String COL_ID = "id";
     private static final String COL_USER_ID = "user_id";
     private static final String COL_USERNAME = "username";
@@ -23,6 +24,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COL_AMOUNT = "amount";
     private static final String COL_RECORD_DATE = "record_date";
     private static final String COL_NOTE = "note";
+    private static final String COL_NAME = "name";
+    private static final String COL_IS_DEFAULT = "is_default";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -32,6 +35,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         createUsersTable(db);
         createRecordsTable(db);
+        createCategoriesTable(db);
     }
 
     private void createUsersTable(SQLiteDatabase db) {
@@ -54,10 +58,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COL_CREATED_AT + " TEXT)");
     }
 
+    private void createCategoriesTable(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_CATEGORIES + " ("
+                + COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + COL_USER_ID + " INTEGER NOT NULL, "
+                + COL_NAME + " TEXT NOT NULL, "
+                + COL_TYPE + " TEXT NOT NULL, "
+                + COL_IS_DEFAULT + " INTEGER NOT NULL DEFAULT 0, "
+                + "UNIQUE(" + COL_USER_ID + ", " + COL_NAME + ", " + COL_TYPE + "))");
+    }
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
             createRecordsTable(db);
+        }
+        if (oldVersion < 3) {
+            createCategoriesTable(db);
         }
     }
 
@@ -81,7 +98,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_USERNAME, username);
         values.put(COL_PASSWORD, password);
         values.put(COL_CREATED_AT, String.valueOf(System.currentTimeMillis()));
-        return db.insert(TABLE_USERS, null, values);
+        long userId = db.insert(TABLE_USERS, null, values);
+        if (userId != -1) {
+            ensureDefaultCategories((int) userId);
+        }
+        return userId;
     }
 
     public int validateLogin(String username, String password) {
@@ -95,10 +116,85 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 null,
                 null)) {
             if (cursor.moveToFirst()) {
-                return cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID));
+                int userId = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID));
+                ensureDefaultCategories(userId);
+                return userId;
             }
             return -1;
         }
+    }
+
+    public void ensureDefaultCategories(int userId) {
+        if (userId == -1 || hasCategories(userId)) {
+            return;
+        }
+
+        String[] expenses = {"餐饮", "交通", "购物", "生活缴费", "其他支出"};
+        String[] incomes = {"工资", "奖金", "兼职", "其他收入"};
+        for (String name : expenses) {
+            addCategory(userId, name, "expense", true);
+        }
+        for (String name : incomes) {
+            addCategory(userId, name, "income", true);
+        }
+    }
+
+    private boolean hasCategories(int userId) {
+        SQLiteDatabase db = getReadableDatabase();
+        try (Cursor cursor = db.query(
+                TABLE_CATEGORIES,
+                new String[]{COL_ID},
+                COL_USER_ID + "=?",
+                new String[]{String.valueOf(userId)},
+                null,
+                null,
+                null)) {
+            return cursor.moveToFirst();
+        }
+    }
+
+    public long addCategory(int userId, String name, String type, boolean isDefault) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_USER_ID, userId);
+        values.put(COL_NAME, name);
+        values.put(COL_TYPE, type);
+        values.put(COL_IS_DEFAULT, isDefault ? 1 : 0);
+        return db.insertWithOnConflict(TABLE_CATEGORIES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+    }
+
+    public Cursor getCategoriesByType(int userId, String type) {
+        ensureDefaultCategories(userId);
+        SQLiteDatabase db = getReadableDatabase();
+        return db.query(
+                TABLE_CATEGORIES,
+                new String[]{COL_ID, COL_NAME, COL_TYPE, COL_IS_DEFAULT},
+                COL_USER_ID + "=? AND " + COL_TYPE + "=?",
+                new String[]{String.valueOf(userId), type},
+                null,
+                null,
+                COL_IS_DEFAULT + " DESC, " + COL_NAME + " ASC");
+    }
+
+    public Cursor getAllCategories(int userId) {
+        ensureDefaultCategories(userId);
+        SQLiteDatabase db = getReadableDatabase();
+        return db.query(
+                TABLE_CATEGORIES,
+                new String[]{COL_ID, COL_NAME, COL_TYPE, COL_IS_DEFAULT},
+                COL_USER_ID + "=?",
+                new String[]{String.valueOf(userId)},
+                null,
+                null,
+                COL_TYPE + " ASC, " + COL_IS_DEFAULT + " DESC, " + COL_NAME + " ASC");
+    }
+
+    public int deleteCustomCategory(int userId, int categoryId) {
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(
+                TABLE_CATEGORIES,
+                COL_ID + "=? AND " + COL_USER_ID + "=? AND " + COL_IS_DEFAULT + "=0",
+                new String[]{String.valueOf(categoryId), String.valueOf(userId)});
     }
 
     public long addRecord(int userId, String type, String category, double amount, String recordDate, String note) {
@@ -205,5 +301,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             return 0;
         }
+    }
+
+    public Cursor getMonthlyCategoryTotals(int userId, String type, String monthPrefix) {
+        SQLiteDatabase db = getReadableDatabase();
+        return db.rawQuery(
+                "SELECT " + COL_CATEGORY + ", SUM(" + COL_AMOUNT + ") AS total FROM " + TABLE_RECORDS
+                        + " WHERE " + COL_USER_ID + "=? AND " + COL_TYPE + "=? AND "
+                        + COL_RECORD_DATE + " LIKE ?"
+                        + " GROUP BY " + COL_CATEGORY
+                        + " ORDER BY total DESC",
+                new String[]{String.valueOf(userId), type, monthPrefix + "%"});
     }
 }
