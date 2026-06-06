@@ -3,10 +3,13 @@ package com.example.accountbook;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.accountbook.db.DatabaseHelper;
 import com.example.accountbook.util.SessionManager;
@@ -32,6 +35,8 @@ public class StatisticsActivity extends AppCompatActivity {
     private TextView incomeTextView;
     private TextView expenseTextView;
     private TextView monthTextView;
+    private EditText yearEditText;
+    private EditText monthEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,29 +63,80 @@ public class StatisticsActivity extends AppCompatActivity {
         incomeTextView = findViewById(R.id.tv_stat_income);
         expenseTextView = findViewById(R.id.tv_stat_expense);
         monthTextView = findViewById(R.id.tv_statistics_month);
+        yearEditText = findViewById(R.id.et_stat_year);
+        monthEditText = findViewById(R.id.et_stat_month);
+        findViewById(R.id.btn_apply_statistics).setOnClickListener(v -> loadStatistics());
+
+        Date now = new Date();
+        yearEditText.setText(new SimpleDateFormat("yyyy", Locale.CHINA).format(now));
+        monthEditText.setText(new SimpleDateFormat("M", Locale.CHINA).format(now));
     }
 
     private void loadStatistics() {
         int userId = sessionManager.getUserId();
-        String monthPrefix = new SimpleDateFormat("yyyy-MM", Locale.CHINA).format(new Date());
-        monthTextView.setText(monthPrefix + " 收支概览");
+        String datePrefix = buildDatePrefix();
+        if (datePrefix == null) {
+            return;
+        }
+        monthTextView.setText(buildPeriodTitle(datePrefix));
 
-        double income = databaseHelper.getMonthlyTotal(userId, RecordEditActivity.TYPE_INCOME, monthPrefix);
-        double expense = databaseHelper.getMonthlyTotal(userId, RecordEditActivity.TYPE_EXPENSE, monthPrefix);
+        double income = databaseHelper.getPeriodTotal(userId, RecordEditActivity.TYPE_INCOME, datePrefix);
+        double expense = databaseHelper.getPeriodTotal(userId, RecordEditActivity.TYPE_EXPENSE, datePrefix);
         double balance = income - expense;
 
         balanceTextView.setText(formatMoney(balance));
         incomeTextView.setText(formatMoney(income));
         expenseTextView.setText(formatMoney(expense));
-        loadExpenseCategories(userId, monthPrefix, expense);
+        loadExpenseCategories(userId, datePrefix, expense);
     }
 
-    private void loadExpenseCategories(int userId, String monthPrefix, double totalExpense) {
+    private String buildDatePrefix() {
+        String year = yearEditText.getText().toString().trim();
+        String month = monthEditText.getText().toString().trim();
+
+        if (TextUtils.isEmpty(year)) {
+            Toast.makeText(this, "年份不能为空", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        if (!year.matches("\\d{4}")) {
+            Toast.makeText(this, "年份格式应为 4 位数字", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        if (TextUtils.isEmpty(month)) {
+            return year;
+        }
+
+        int monthValue;
+        try {
+            monthValue = Integer.parseInt(month);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "月份格式不正确", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        if (monthValue < 1 || monthValue > 12) {
+            Toast.makeText(this, "月份必须在 1 到 12 之间", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        return String.format(Locale.CHINA, "%s-%02d", year, monthValue);
+    }
+
+    private String buildPeriodTitle(String datePrefix) {
+        if (datePrefix.length() == 4) {
+            return datePrefix + " 年全年收支概览";
+        }
+        return datePrefix + " 收支概览";
+    }
+
+    private void loadExpenseCategories(int userId, String datePrefix, double totalExpense) {
         categoryTotalContainer.removeAllViews();
-        try (Cursor cursor = databaseHelper.getMonthlyCategoryTotals(
+        try (Cursor cursor = databaseHelper.getPeriodCategoryTotals(
                 userId,
                 RecordEditActivity.TYPE_EXPENSE,
-                monthPrefix)) {
+                datePrefix)) {
             boolean hasData = cursor.getCount() > 0;
             emptyStatisticsTextView.setVisibility(hasData ? View.GONE : View.VISIBLE);
             while (cursor.moveToNext()) {

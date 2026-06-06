@@ -884,3 +884,67 @@
 本次修改：
 
 - 修改密码时新增校验：新密码不能与旧密码相同。
+
+## 2026-06-06 后续修改记录：首页最近账单动态化
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 新增 `getRecentRecords()`，用于按日期和 id 倒序读取最近账单。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- 首页月份说明改为根据当前日期动态显示。
+- 最近账单区域从静态假数据改为读取 SQLite 最近账单。
+- 无账单时显示“暂无账单，先记一笔”。
+
+## 2026-06-06 后续修改记录：统计分析年月筛选
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 新增 `getPeriodTotal()`，支持按日期前缀统计收入或支出。
+- 新增 `getPeriodCategoryTotals()`，支持按日期前缀统计支出分类汇总。
+
+### `app/src/main/res/layout/activity_statistics.xml`
+
+文件作用：
+
+- 统计分析页面布局文件。
+
+本次修改：
+
+- 新增年份输入框，年份必填。
+- 新增月份输入框，月份可为空。
+- 新增“查看统计”按钮。
+- 调整统计文案，使其同时适用于全年统计和指定月份统计。
+
+### `app/src/main/java/com/example/accountbook/StatisticsActivity.java`
+
+文件作用：
+
+- 统计分析页面控制逻辑。
+
+本次修改：
+
+- 统计条件改为由用户输入年份和月份。
+- 年份为空时提示错误。
+- 月份为空时按全年统计。
+- 月份填写时按指定年月统计。
+- 校验年份为 4 位数字，月份范围为 1 到 12。

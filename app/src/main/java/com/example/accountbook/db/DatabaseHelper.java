@@ -247,6 +247,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_RECORD_DATE + " DESC, " + COL_ID + " DESC");
     }
 
+    public Cursor getRecentRecords(int userId, int limit) {
+        SQLiteDatabase db = getReadableDatabase();
+        return db.query(
+                TABLE_RECORDS,
+                new String[]{COL_ID, COL_TYPE, COL_CATEGORY, COL_AMOUNT, COL_RECORD_DATE, COL_NOTE},
+                COL_USER_ID + "=?",
+                new String[]{String.valueOf(userId)},
+                null,
+                null,
+                COL_RECORD_DATE + " DESC, " + COL_ID + " DESC",
+                String.valueOf(limit));
+    }
+
     public Cursor searchRecords(int userId, String type, String category, String keyword) {
         SQLiteDatabase db = getReadableDatabase();
         StringBuilder selection = new StringBuilder(COL_USER_ID + "=?");
@@ -328,6 +341,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public double getPeriodTotal(int userId, String type, String datePrefix) {
+        SQLiteDatabase db = getReadableDatabase();
+        try (Cursor cursor = db.rawQuery(
+                "SELECT SUM(" + COL_AMOUNT + ") FROM " + TABLE_RECORDS
+                        + " WHERE " + COL_USER_ID + "=? AND " + COL_TYPE + "=? AND "
+                        + COL_RECORD_DATE + " LIKE ?",
+                new String[]{String.valueOf(userId), type, datePrefix + "%"})) {
+            if (cursor.moveToFirst()) {
+                return cursor.getDouble(0);
+            }
+            return 0;
+        }
+    }
+
     public Cursor getMonthlyCategoryTotals(int userId, String type, String monthPrefix) {
         SQLiteDatabase db = getReadableDatabase();
         return db.rawQuery(
@@ -337,5 +364,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         + " GROUP BY " + COL_CATEGORY
                         + " ORDER BY total DESC",
                 new String[]{String.valueOf(userId), type, monthPrefix + "%"});
+    }
+
+    public Cursor getPeriodCategoryTotals(int userId, String type, String datePrefix) {
+        SQLiteDatabase db = getReadableDatabase();
+        return db.rawQuery(
+                "SELECT " + COL_CATEGORY + ", SUM(" + COL_AMOUNT + ") AS total FROM " + TABLE_RECORDS
+                        + " WHERE " + COL_USER_ID + "=? AND " + COL_TYPE + "=? AND "
+                        + COL_RECORD_DATE + " LIKE ?"
+                        + " GROUP BY " + COL_CATEGORY
+                        + " ORDER BY total DESC",
+                new String[]{String.valueOf(userId), type, datePrefix + "%"});
     }
 }
