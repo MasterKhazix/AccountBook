@@ -815,3 +815,72 @@
 本次修改：
 
 - 注册 `CategoryActivity`。
+
+## 2026-06-06 后续修改记录：个人中心模块
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 新增 `checkPassword()`，用于校验当前用户旧密码。
+- 新增 `updatePassword()`，用于修改当前用户密码。
+
+### `app/src/main/java/com/example/accountbook/ProfileActivity.java`
+
+文件作用：
+
+- 个人中心页面控制逻辑。
+
+本次修改：
+
+- 新增该文件。
+- 显示当前登录用户名。
+- 支持输入旧密码、新密码、确认密码修改密码。
+- 支持退出登录，并清空任务栈返回登录页。
+
+### `app/src/main/res/layout/activity_profile.xml`
+
+文件作用：
+
+- 个人中心页面布局文件。
+
+本次修改：
+
+- 新增该文件。
+- 提供当前用户信息、修改密码表单、退出登录按钮和关于说明。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- 首页右上角“我”按钮从临时退出登录改为打开 `ProfileActivity`。
+
+### `app/src/main/AndroidManifest.xml`
+
+文件作用：
+
+- Android 应用清单文件。
+
+本次修改：
+
+- 注册 `ProfileActivity`。
+
+## 2026-06-06 后续修改记录：修改密码校验增强
+
+### `app/src/main/java/com/example/accountbook/ProfileActivity.java`
+
+文件作用：
+
+- 个人中心页面控制逻辑。
+
+本次修改：
+
+- 修改密码时新增校验：新密码不能与旧密码相同。

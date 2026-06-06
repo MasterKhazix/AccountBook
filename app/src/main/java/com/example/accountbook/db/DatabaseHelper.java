@@ -124,6 +124,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public boolean checkPassword(int userId, String password) {
+        SQLiteDatabase db = getReadableDatabase();
+        try (Cursor cursor = db.query(
+                TABLE_USERS,
+                new String[]{COL_ID},
+                COL_ID + "=? AND " + COL_PASSWORD + "=?",
+                new String[]{String.valueOf(userId), password},
+                null,
+                null,
+                null)) {
+            return cursor.moveToFirst();
+        }
+    }
+
+    public int updatePassword(int userId, String newPassword) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_PASSWORD, newPassword);
+        return db.update(
+                TABLE_USERS,
+                values,
+                COL_ID + "=?",
+                new String[]{String.valueOf(userId)});
+    }
+
     public void ensureDefaultCategories(int userId) {
         if (userId == -1 || hasCategories(userId)) {
             return;

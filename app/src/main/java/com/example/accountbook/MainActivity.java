@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindHomeActions() {
-        findViewById(R.id.btn_profile).setOnClickListener(v -> logout());
+        findViewById(R.id.btn_profile).setOnClickListener(v -> openProfile());
         findViewById(R.id.btn_add_expense).setOnClickListener(v -> openRecordEdit(RecordEditActivity.TYPE_EXPENSE));
         findViewById(R.id.btn_add_income).setOnClickListener(v -> openRecordEdit(RecordEditActivity.TYPE_INCOME));
         findViewById(R.id.btn_records).setOnClickListener(v -> openRecordList());
@@ -112,5 +112,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void openCategories() {
         startActivity(new android.content.Intent(this, CategoryActivity.class));
+    }
+
+    private void openProfile() {
+        startActivity(new android.content.Intent(this, ProfileActivity.class));
     }
 }
