@@ -109,7 +109,7 @@
 
 - 保留原来的 `EdgeToEdge` 和系统栏适配逻辑。
 - 新增首页按钮点击绑定方法 `bindHomeActions()`。
-- 新增临时 Toast 提示方法 `showComingSoon()`。
+- 曾新增临时 Toast 提示方法 `showComingSoon()`，后续功能入口已接入实际页面，该方法已删除。
 - 当前按钮只做交互反馈，后续再跳转到具体 Activity 或接入数据库功能。
 
 后续修改记录：
@@ -948,3 +948,169 @@
 - 月份为空时按全年统计。
 - 月份填写时按指定年月统计。
 - 校验年份为 4 位数字，月份范围为 1 到 12。
+
+## 2026-06-06 后续修改记录：查询页年月筛选
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- `searchRecords()` 增加日期前缀条件，支持按年份或指定年月查询账单。
+
+### `app/src/main/res/layout/activity_record_search.xml`
+
+文件作用：
+
+- 独立筛选查询页面布局文件。
+
+本次修改：
+
+- 新增年份输入框，年份必填。
+- 新增月份输入框，月份可为空。
+- 月份为空时表示查询全年。
+
+### `app/src/main/java/com/example/accountbook/RecordSearchActivity.java`
+
+文件作用：
+
+- 独立筛选查询页面控制逻辑。
+
+本次修改：
+
+- 查询条件新增年份和月份。
+- 年份为空时提示错误。
+- 月份为空时按全年查询。
+- 月份填写时按指定年月查询。
+- 校验年份为 4 位数字，月份范围为 1 到 12。
+
+## 2026-06-06 后续修改记录：记账页日期选择器
+
+### `app/src/main/res/layout/activity_record_edit.xml`
+
+文件作用：
+
+- 账单新增/编辑页面布局文件。
+
+本次修改：
+
+- 日期输入框改为点击选择日期。
+- 日期输入框不再默认弹出键盘，降低手动输错日期的概率。
+
+### `app/src/main/java/com/example/accountbook/RecordEditActivity.java`
+
+文件作用：
+
+- 账单新增/编辑页面控制逻辑。
+
+本次修改：
+
+- 新增 `DatePickerDialog` 日期选择器。
+- 点击日期输入框时弹出日期选择器。
+- 如果已有日期，日期选择器会默认定位到当前账单日期。
+- 选择日期后自动填入 `yyyy-MM-dd` 格式。
+
+## 2026-06-06 后续修改记录：账号规则和历史不合规用户清理
+
+### `app/src/main/java/com/example/accountbook/util/AccountValidator.java`
+
+文件作用：
+
+- 账号规则校验工具类。
+
+本次修改：
+
+- 新增该文件。
+- 统一校验用户名长度为 1-10 位。
+- 统一校验密码长度为 6-12 位。
+- 提供用户名和密码规则提示文案。
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 数据库版本升级到 4，仅在旧版本数据库升级到账号长度规则版本时清空并重建旧数据库表。
+- 不再新增运行时清理历史用户的业务函数，后续入库数据由注册和修改密码入口校验保证有效。
+
+### `app/src/main/java/com/example/accountbook/LoginActivity.java`
+
+文件作用：
+
+- 登录页面控制逻辑。
+
+本次修改：
+
+- 登录页不再执行历史不合规用户清理函数。
+- 登录前校验用户名长度 1-10 位、密码长度 6-12 位。
+
+### `app/src/main/java/com/example/accountbook/RegisterActivity.java`
+
+文件作用：
+
+- 注册页面控制逻辑。
+
+本次修改：
+
+- 注册时校验用户名长度 1-10 位。
+- 注册时校验密码长度 6-12 位。
+
+### `app/src/main/java/com/example/accountbook/ProfileActivity.java`
+
+文件作用：
+
+- 个人中心页面控制逻辑。
+
+本次修改：
+
+- 修改密码时校验新密码长度为 6-12 位。
+
+### `app/src/main/res/layout/activity_register.xml`
+
+文件作用：
+
+- 注册页面布局文件。
+
+本次修改：
+
+- 注册页增加规则提示：用户名 1-10 位，密码 6-12 位。
+
+## 2026-06-06 后续修改记录：登录态清理修复
+
+### `app/src/main/java/com/example/accountbook/db/DatabaseHelper.java`
+
+文件作用：
+
+- SQLite 数据库帮助类。
+
+本次修改：
+
+- 新增 `isUserExists()`，用于判断当前会话用户是否仍存在。
+
+### `app/src/main/java/com/example/accountbook/LoginActivity.java`
+
+文件作用：
+
+- 登录页面控制逻辑。
+
+本次修改：
+
+- 启动时不再执行历史用户清理函数。
+- 如果数据库升级后旧数据已被清空，保存的登录用户不存在时自动清除登录状态。
+
+### `app/src/main/java/com/example/accountbook/MainActivity.java`
+
+文件作用：
+
+- 首页页面控制逻辑。
+
+本次修改：
+
+- 进入首页时不再执行历史用户清理函数。
+- 如果数据库升级后旧数据已被清空，当前会话用户不存在时自动退出并返回登录页。

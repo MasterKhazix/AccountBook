@@ -7,6 +7,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.accountbook.db.DatabaseHelper;
+import com.example.accountbook.util.AccountValidator;
 import com.example.accountbook.util.SessionManager;
 
 import androidx.activity.EdgeToEdge;
@@ -26,9 +27,13 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sessionManager = new SessionManager(this);
+        databaseHelper = new DatabaseHelper(this);
         if (sessionManager.isLoggedIn()) {
-            openHome();
-            return;
+            if (databaseHelper.isUserExists(sessionManager.getUserId())) {
+                openHome();
+                return;
+            }
+            sessionManager.logout();
         }
 
         EdgeToEdge.enable(this);
@@ -41,7 +46,6 @@ public class LoginActivity extends AppCompatActivity {
 
         usernameEditText = findViewById(R.id.et_username);
         passwordEditText = findViewById(R.id.et_password);
-        databaseHelper = new DatabaseHelper(this);
 
         findViewById(R.id.btn_login).setOnClickListener(v -> handleLogin());
         findViewById(R.id.btn_to_register).setOnClickListener(v ->
@@ -59,6 +63,16 @@ public class LoginActivity extends AppCompatActivity {
 
         if (TextUtils.isEmpty(password)) {
             Toast.makeText(this, "请输入密码", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!AccountValidator.isUsernameValid(username)) {
+            Toast.makeText(this, AccountValidator.usernameRuleText(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!AccountValidator.isPasswordValid(password)) {
+            Toast.makeText(this, AccountValidator.passwordRuleText(), Toast.LENGTH_SHORT).show();
             return;
         }
 

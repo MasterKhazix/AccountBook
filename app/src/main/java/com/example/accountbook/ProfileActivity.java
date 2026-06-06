@@ -8,6 +8,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.accountbook.db.DatabaseHelper;
+import com.example.accountbook.util.AccountValidator;
 import com.example.accountbook.util.SessionManager;
 
 import androidx.activity.EdgeToEdge;
@@ -65,6 +66,11 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (!newPassword.equals(confirmPassword)) {
             Toast.makeText(this, "两次新密码不一致", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!AccountValidator.isPasswordValid(newPassword)) {
+            Toast.makeText(this, AccountValidator.passwordRuleText(), Toast.LENGTH_SHORT).show();
             return;
         }
 

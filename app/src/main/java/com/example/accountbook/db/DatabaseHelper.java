@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "account_book.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     private static final String TABLE_USERS = "users";
     private static final String TABLE_RECORDS = "records";
@@ -70,11 +70,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 2) {
-            createRecordsTable(db);
-        }
-        if (oldVersion < 3) {
-            createCategoriesTable(db);
+        if (oldVersion < 4) {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_RECORDS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+            onCreate(db);
         }
     }
 
@@ -121,6 +121,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 return userId;
             }
             return -1;
+        }
+    }
+
+    public boolean isUserExists(int userId) {
+        SQLiteDatabase db = getReadableDatabase();
+        try (Cursor cursor = db.query(
+                TABLE_USERS,
+                new String[]{COL_ID},
+                COL_ID + "=?",
+                new String[]{String.valueOf(userId)},
+                null,
+                null,
+                null)) {
+            return cursor.moveToFirst();
         }
     }
 
@@ -261,6 +275,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public Cursor searchRecords(int userId, String type, String category, String keyword) {
+        return searchRecords(userId, type, category, keyword, "");
+    }
+
+    public Cursor searchRecords(int userId, String type, String category, String keyword, String datePrefix) {
         SQLiteDatabase db = getReadableDatabase();
         StringBuilder selection = new StringBuilder(COL_USER_ID + "=?");
         java.util.ArrayList<String> args = new java.util.ArrayList<>();
@@ -279,6 +297,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (keyword != null && !keyword.isEmpty()) {
             selection.append(" AND ").append(COL_NOTE).append(" LIKE ?");
             args.add("%" + keyword + "%");
+        }
+
+        if (datePrefix != null && !datePrefix.isEmpty()) {
+            selection.append(" AND ").append(COL_RECORD_DATE).append(" LIKE ?");
+            args.add(datePrefix + "%");
         }
 
         return db.query(

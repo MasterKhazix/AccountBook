@@ -7,7 +7,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.accountbook.db.DatabaseHelper;
 import com.example.accountbook.util.SessionManager;
@@ -38,6 +37,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sessionManager = new SessionManager(this);
         databaseHelper = new DatabaseHelper(this);
+        if (!databaseHelper.isUserExists(sessionManager.getUserId())) {
+            sessionManager.logout();
+            startActivity(new android.content.Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -183,17 +189,6 @@ public class MainActivity extends AppCompatActivity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
-    }
-
-    private void showComingSoon(String featureName) {
-        Toast.makeText(this, featureName + "功能待接入", Toast.LENGTH_SHORT).show();
-    }
-
-    private void logout() {
-        sessionManager.logout();
-        Toast.makeText(this, "已退出登录", Toast.LENGTH_SHORT).show();
-        startActivity(new android.content.Intent(this, LoginActivity.class));
-        finish();
     }
 
     private void openRecordEdit(String type) {

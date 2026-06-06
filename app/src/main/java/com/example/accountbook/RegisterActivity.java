@@ -6,6 +6,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.accountbook.db.DatabaseHelper;
+import com.example.accountbook.util.AccountValidator;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -52,6 +53,16 @@ public class RegisterActivity extends AppCompatActivity {
 
         if (TextUtils.isEmpty(password)) {
             Toast.makeText(this, "请输入密码", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!AccountValidator.isUsernameValid(username)) {
+            Toast.makeText(this, AccountValidator.usernameRuleText(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!AccountValidator.isPasswordValid(password)) {
+            Toast.makeText(this, AccountValidator.passwordRuleText(), Toast.LENGTH_SHORT).show();
             return;
         }
 

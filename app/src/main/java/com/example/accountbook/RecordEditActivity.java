@@ -1,5 +1,6 @@
 package com.example.accountbook;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.database.Cursor;
@@ -16,6 +17,7 @@ import com.example.accountbook.util.SessionManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -70,6 +72,7 @@ public class RecordEditActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         findViewById(R.id.btn_save_record).setOnClickListener(v -> saveRecord());
+        dateEditText.setOnClickListener(v -> showDatePicker());
         ((RadioGroup) findViewById(R.id.rg_type)).setOnCheckedChangeListener((group, checkedId) -> refreshCategories());
     }
 
@@ -150,6 +153,27 @@ public class RecordEditActivity extends AppCompatActivity {
                 return;
             }
         }
+    }
+
+    private void showDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        String currentDate = dateEditText.getText().toString().trim();
+        if (currentDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            String[] parts = currentDate.split("-");
+            calendar.set(
+                    Integer.parseInt(parts[0]),
+                    Integer.parseInt(parts[1]) - 1,
+                    Integer.parseInt(parts[2]));
+        }
+
+        new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> dateEditText.setText(
+                        String.format(Locale.CHINA, "%04d-%02d-%02d", year, month + 1, dayOfMonth)),
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH))
+                .show();
     }
 
     private void saveRecord() {

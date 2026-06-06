@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -11,11 +12,14 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.accountbook.db.DatabaseHelper;
 import com.example.accountbook.util.SessionManager;
 
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 import androidx.activity.EdgeToEdge;
@@ -29,6 +33,8 @@ public class RecordSearchActivity extends AppCompatActivity {
 
     private Spinner typeSpinner;
     private Spinner categorySpinner;
+    private EditText yearEditText;
+    private EditText monthEditText;
     private EditText keywordEditText;
     private LinearLayout resultContainer;
     private TextView emptyTextView;
@@ -56,6 +62,8 @@ public class RecordSearchActivity extends AppCompatActivity {
     private void bindViews() {
         typeSpinner = findViewById(R.id.sp_filter_type);
         categorySpinner = findViewById(R.id.sp_filter_category);
+        yearEditText = findViewById(R.id.et_filter_year);
+        monthEditText = findViewById(R.id.et_filter_month);
         keywordEditText = findViewById(R.id.et_filter_keyword);
         resultContainer = findViewById(R.id.search_result_container);
         emptyTextView = findViewById(R.id.tv_empty_search);
@@ -68,6 +76,9 @@ public class RecordSearchActivity extends AppCompatActivity {
     private void initFilters() {
         setSpinnerItems(typeSpinner, new String[]{"全部类型", "支出", "收入"});
         refreshCategoryFilter();
+        Date now = new Date();
+        yearEditText.setText(new SimpleDateFormat("yyyy", Locale.CHINA).format(now));
+        monthEditText.setText("");
     }
 
     private void setSpinnerItems(Spinner spinner, String[] items) {
@@ -93,17 +104,25 @@ public class RecordSearchActivity extends AppCompatActivity {
     private void resetFilters() {
         typeSpinner.setSelection(0);
         categorySpinner.setSelection(0);
+        yearEditText.setText(new SimpleDateFormat("yyyy", Locale.CHINA).format(new Date()));
+        monthEditText.setText("");
         keywordEditText.setText("");
         loadResults();
     }
 
     private void loadResults() {
         resultContainer.removeAllViews();
+        String datePrefix = buildDatePrefix();
+        if (datePrefix == null) {
+            return;
+        }
+
         try (Cursor cursor = databaseHelper.searchRecords(
                 sessionManager.getUserId(),
                 getSelectedType(),
                 getSelectedCategory(),
-                keywordEditText.getText().toString().trim())) {
+                keywordEditText.getText().toString().trim(),
+                datePrefix)) {
             emptyTextView.setVisibility(cursor.getCount() == 0 ? View.VISIBLE : View.GONE);
             while (cursor.moveToNext()) {
                 int recordId = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
@@ -115,6 +134,40 @@ public class RecordSearchActivity extends AppCompatActivity {
                 resultContainer.addView(createResultRow(recordId, type, category, amount, date, note));
             }
         }
+    }
+
+    private String buildDatePrefix() {
+        String year = yearEditText.getText().toString().trim();
+        String month = monthEditText.getText().toString().trim();
+
+        if (TextUtils.isEmpty(year)) {
+            Toast.makeText(this, "年份不能为空", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        if (!year.matches("\\d{4}")) {
+            Toast.makeText(this, "年份格式应为 4 位数字", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        if (TextUtils.isEmpty(month)) {
+            return year;
+        }
+
+        int monthValue;
+        try {
+            monthValue = Integer.parseInt(month);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "月份格式不正确", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        if (monthValue < 1 || monthValue > 12) {
+            Toast.makeText(this, "月份必须在 1 到 12 之间", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        return String.format(Locale.CHINA, "%s-%02d", year, monthValue);
     }
 
     private View createResultRow(int recordId, String type, String category, double amount, String date, String note) {

@@ -39,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="先完成页面流程，后续接入本地数据库"
+            android:text="用户名 1-10 位，密码 6-12 位"
             android:textColor="@color/text_secondary"
             android:textSize="15sp" />
 
